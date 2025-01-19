@@ -1,7 +1,7 @@
 from enum import Enum
 import threading
 from typing import Any, Dict
-from database import get_database
+from models.database import get_database
 
 db = get_database()
 
@@ -13,7 +13,7 @@ class TaskStatuses(Enum):
     STOPPED = 4
     ERROR = 5
     
-class Task(d.Model):
+class Task(db.Model):
     __tablename__ = 'tasks'
     id = db.Column(db.Integer, primary_key=True)
     status = db.Column(db.String(120), nullable=False)

@@ -7,7 +7,6 @@ db = SQLAlchemy()
 metadata = MetaData()
 
 def initialize(app, database_name:str):
-    # uri = 'mysql+pymysql://admin:1PkmXCqeCRhxTfnpdHLvdrZ0:@localhost:3306/'+database_name
     uri = 'mysql+pymysql://root:@localhost/'+database_name
     app.config['SQLALCHEMY_DATABASE_URI'] = uri
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -61,7 +60,7 @@ def get_items_as_dicts(app, statement):
         session = Session()
         try:
             rows = session.execute(statement).all()
-            result = [r._asdict() for r in rows]
+            res = [r._asdict() for r in rows]
         except Exception as e:
             res = []
         finally:
