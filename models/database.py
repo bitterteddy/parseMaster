@@ -17,7 +17,7 @@ def initialize(app, database_name:str):
 def get_database():
     return db
 
-def get_scalars(app, statement):
+def get_items(app, statement):
     with app.app_context():
         Session = sessionmaker(bind=db.engine)
         session = Session()
@@ -29,7 +29,7 @@ def get_scalars(app, statement):
             session.close()
     return res
 
-def get_scalar(app, statement):
+def get_item(app, statement):
     with app.app_context():
         Session = sessionmaker(bind=db.engine)
         session = Session()
@@ -37,6 +37,19 @@ def get_scalar(app, statement):
             res = session.scalars(statement).one_or_none()
         except Exception as e:
             res = None
+        finally:
+            session.close()
+    return res
+
+def get_items_as_dicts(app, statement):
+    with app.app_context():
+        Session = sessionmaker(bind=db.engine)
+        session = Session()
+        try:
+            rows = session.execute(statement).all()
+            result = [r._asdict() for r in rows]
+        except Exception as e:
+            res = []
         finally:
             session.close()
     return res
@@ -87,4 +100,5 @@ def fill_custom_table(app, table_name:str, results:List[Dict[str, str]]):
     pass
     # with app.app_context():
     #     table = db.Table(table_name, metadata, autoload_with=db.engine)
-        
+
+      
