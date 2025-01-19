@@ -42,6 +42,18 @@ def get_item(app, statement):
             session.close()
     return res
 
+def get_item_by_id(app, table, id):
+    with app.app_context():
+        Session = sessionmaker(bind=db.engine)
+        session = Session()
+        try:
+            res = session.get(table, id)
+        except Exception as e:
+            res = None
+        finally:
+            session.close()
+    return res
+
 def get_items_as_dicts(app, statement):
     with app.app_context():
         Session = sessionmaker(bind=db.engine)
