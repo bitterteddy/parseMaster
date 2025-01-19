@@ -13,6 +13,7 @@ def initialize(app, database_name:str):
     db.init_app(app)
     with app.app_context():
         db.create_all()
+    return app
 
 def get_database():
     return db
