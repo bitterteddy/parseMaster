@@ -74,7 +74,8 @@ def run_task(task_id):
                 fill_custom_table(table_name, all_results)
 
     except Exception as e:
-        update_item(app, task_id, {"status": "failed", "error_message": str(e)})
+        f = lambda t, m: t.fail(m)
+        update_item(app, task, f, str(e))
         print(f"Error during task execution: {str(e)}")
 
 

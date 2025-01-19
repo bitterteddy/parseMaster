@@ -31,7 +31,7 @@ class Task(db.Model):
         self.error_message = None
         self._lock = threading.Lock()
     
-    def start(self):
+    def start(self, par):
         self.status = TaskStatuses.IN_PROGRESS.name
         print(f"Task {self.task_id} - in progress...")
 
@@ -48,18 +48,18 @@ class Task(db.Model):
     def is_paused(self):
         return self.status == TaskStatuses.PAUSED.name
     
-    def pause(self):
+    def pause(self, par):
         with self._lock:
             self.status = TaskStatuses.PAUSED.name
             print(f"Task {self.task_id} - paused!")
 
-    def resume(self):
+    def resume(self, par):
         with self._lock:
             self.status = TaskStatuses.IN_PROGRESS.name
             print(f"Task {self.task_id} - resumed!")
             print(f"Task {self.task_id} - in progress...")
 
-    def stop(self):
+    def stop(self, par):
         with self._lock:
             self.status = TaskStatuses.STOPPED.name
             print(f"Task {self.task_id} - stopped!")
