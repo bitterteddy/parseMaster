@@ -94,6 +94,23 @@ def add_items(app, items:List[Any]):
         finally:
             session.close()
 
+def update_item(app, item, upd_func, par):
+    table = type(item)
+    id = item.id
+    with app.app_context():
+        Session = sessionmaker(bind=db.engine)
+        session = Session()
+        try:
+            temp_item = session.get(table, id)
+            upd_func(temp_item, par)
+            session.commit()
+        except Exception as e:
+            print(e)
+        else:
+            upd_func(item, par)
+        finally:
+            session.close()
+
 def create_custom_table(app, table_name:str, column_params:List[Dict[str, Any]]):
     pass
     # with app.app_context():
