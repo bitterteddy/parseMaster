@@ -7,6 +7,7 @@ db = SQLAlchemy()
 metadata = MetaData()
 
 def initialize(app, database_name:str):
+    # uri = 'mysql+pymysql://admin:1PkmXCqeCRhxTfnpdHLvdrZ0:@localhost:3306/'+database_name
     uri = 'mysql+pymysql://root:@localhost/'+database_name
     app.config['SQLALCHEMY_DATABASE_URI'] = uri
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -97,7 +98,7 @@ def create_custom_table(app, table_name:str, column_params:List[Dict[str, Any]])
     pass
     # with app.app_context():
     #     columns = [
-    #         db.Column("id", db.Integer, primary_key=True, autoincrement=True),  # ID столбец
+    #         db.Column("id", db.Integer, primary_key=True, autoincrement=True),  # ID пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
     #     ]
 
     #     for element in column_params:
