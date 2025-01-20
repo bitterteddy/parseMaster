@@ -2,7 +2,8 @@ from enum import Enum
 import json
 import threading
 from typing import Any, Dict
-from models.database import create_custom_table, fill_custom_table, get_database
+from models.database import create_custom_table, fill_custom_table, get_database, get_items_as_dicts
+from sqlalchemy import text
 
 db = get_database()
 
@@ -65,6 +66,11 @@ class Task(db.Model):
     def save_result(self, app, result):
         table_name = f"parsed_results_{self.id}"
         fill_custom_table(app, table_name, result)
+    
+    def get_result(self, app):
+        table_name = f"parsed_results_{self.id}"
+        query = text(f"SELECT * FROM {table_name}") 
+        return get_items_as_dicts(app, query)
 
     def to_dict(self) -> Dict[str, Any]:
         return {
