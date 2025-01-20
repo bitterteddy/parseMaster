@@ -142,4 +142,22 @@ def fill_custom_table(app, table_name:str, results:Dict[str, Any]):
             print(e)
         finally:
             session.close()
-      
+
+def get_result(app, table_name):
+    with app.app_context():
+        Session = sessionmaker(bind=db.engine)
+        session = Session()
+        try:
+            query = text(f"SELECT * FROM {table_name}") 
+            result = session.execute(query).fetchall()
+            
+            print(result)
+
+        
+        except Exception as e:
+            print(f"Error fetching data from {table_name}: {e}")
+            return {"error": str(e)}, []
+        finally:
+            session.close()
+    return 
+

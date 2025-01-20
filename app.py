@@ -2,7 +2,7 @@ from concurrent.futures import ThreadPoolExecutor
 import threading
 from flask import Flask, jsonify, render_template, request
 from sqlalchemy import select
-from models.database import add_item, create_custom_table, fill_custom_table, get_item, get_item_by_id, get_items, get_items_as_dicts, initialize, update_item
+from models.database import add_item, create_custom_table, fill_custom_table, get_item, get_item_by_id, get_items, get_items_as_dicts, get_result, initialize, update_item
 from models.task import Task, TaskStatuses
 from models.user import User
 from parse_methods.soup_parser import SoupParser
@@ -170,6 +170,16 @@ def start_task(task_id):
         return jsonify({"message": f"Task {task_id} started."})
     except Exception as e:
         return jsonify({"error": f"Database error: {str(e)}"}), 500
+    
+@app.route('/tasks/<int:task_id>/result', methods=['GET'])
+def get_task_result(task_id):
+    table_name = f"parsed_results_{task_id}"
+    result, error = get_result(app, table_name)
+    
+    if "error" in result:
+        return jsonify({"error": error}), 500
+
+    return jsonify(result)
 
 if __name__ == '__main__':
     print("Starting Flask app...")

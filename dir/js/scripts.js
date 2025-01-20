@@ -124,6 +124,30 @@ async function loadTasks() {
                     </div>
 
                     <button class="view" onclick="viewTaskResult(${task.id})">View Result</button>
+
+                    <div class="modal fade" id="resultModal" tabindex="-1" aria-labelledby="resultModalLabel" aria-hidden="true">
+                        <div class="modal-dialog modal-lg">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="resultModalLabel">Task Result</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <table class="table">
+                                        <thead id="resultTableHead">
+                                            <!-- Заголовки таблицы будут добавлены сюда -->
+                                        </thead>
+                                        <tbody id="resultTableBody">
+                                            <!-- Данные таблицы будут добавлены сюда -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             `;
             tasksList.appendChild(li); 
@@ -172,6 +196,88 @@ function startTask(taskId) {
       .catch(error => {
         alert(`Unexpected error: ${error.message}`);
       });
+}
+
+// function viewTaskResult(taskId) {
+//     const resultContainer = document.getElementById("task-result");
+//     const resultData = taskResults[taskId];
+
+//     resultContainer.innerHTML = "";
+
+//     if (resultData.success) {
+//         const table = document.createElement("table");
+//         table.className = "table table-striped";
+
+//         const thead = document.createElement("thead");
+//         thead.innerHTML = `
+//             <tr>
+//                 <th>Column 1</th>
+//                 <th>Column 2</th>
+//             </tr>
+//         `;
+//         table.appendChild(thead);
+
+//         const tbody = document.createElement("tbody");
+//         resultData.data.forEach((row) => {
+//             const tr = document.createElement("tr");
+//             tr.innerHTML = `
+//                 <td>${row.col1}</td>
+//                 <td>${row.col2}</td>
+//             `;
+//             tbody.appendChild(tr);
+//         });
+//         table.appendChild(tbody);
+
+//         resultContainer.appendChild(table);
+//     } else {
+//         const errorMsg = document.createElement("p");
+//         errorMsg.textContent = `Error: ${resultData.error}`;
+//         errorMsg.style.color = "red";
+//         resultContainer.appendChild(errorMsg);
+//     }
+// }
+
+async function viewTaskResult(taskId) {
+    try {
+        const response = await fetch(`/tasks/${taskId}/result`);
+        if (!response.ok) {
+            throw new Error(`Error fetching task result: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        const { columns, rows } = data;
+
+        const tableHead = document.getElementById("resultTableHead");
+        const tableBody = document.getElementById("resultTableBody");
+
+        tableHead.innerHTML = "";
+        tableBody.innerHTML = "";
+
+        const headRow = document.createElement("tr");
+        columns.forEach(column => {
+            const th = document.createElement("th");
+            th.textContent = column;
+            headRow.appendChild(th);
+        });
+        tableHead.appendChild(headRow);
+
+        rows.forEach(row => {
+            const bodyRow = document.createElement("tr");
+            columns.forEach(column => {
+                const td = document.createElement("td");
+                td.textContent = row[column] || ""; 
+                bodyRow.appendChild(td);
+            });
+            tableBody.appendChild(bodyRow);
+        });
+
+        const modal = new bootstrap.Modal(document.getElementById("resultModal"));
+        modal.show();
+
+    } catch (error) {
+        console.error(error);
+        alert("Failed to load task result. Please try again later.");
+    }
 }
 
 
