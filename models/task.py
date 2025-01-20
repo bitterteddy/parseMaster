@@ -33,17 +33,17 @@ class Task(db.Model):
     
     def start(self):
         self.status = TaskStatuses.IN_PROGRESS.name
-        print(f"Task {self.task_id} - in progress...")
+        print(f"Task {self.id} - in progress...")
 
     def complete(self, result: Any):
         self.status = TaskStatuses.COMPLETED.name
         self.result = result
-        print(f"Task {self.task_id} - completed!")
+        print(f"Task {self.id} - completed!")
 
     def fail(self, error_message: str):
         self.status = TaskStatuses.ERROR.name
         self.error_message = error_message
-        print(f"Task {self.task_id} failed to complete! Error: {error_message}")
+        print(f"Task {self.id} failed to complete! Error: {error_message}")
 
     def is_paused(self):
         return self.status == TaskStatuses.PAUSED.name
@@ -51,18 +51,18 @@ class Task(db.Model):
     def pause(self):
         with self._lock:
             self.status = TaskStatuses.PAUSED.name
-            print(f"Task {self.task_id} - paused!")
+            print(f"Task {self.id} - paused!")
 
     def resume(self):
         with self._lock:
             self.status = TaskStatuses.IN_PROGRESS.name
-            print(f"Task {self.task_id} - resumed!")
-            print(f"Task {self.task_id} - in progress...")
+            print(f"Task {self.id} - resumed!")
+            print(f"Task {self.id} - in progress...")
 
     def stop(self):
         with self._lock:
             self.status = TaskStatuses.STOPPED.name
-            print(f"Task {self.task_id} - stopped!")
+            print(f"Task {self.id} - stopped!")
 
     def is_stopped(self):
         return self.status == TaskStatuses.STOPPED.name
@@ -72,11 +72,11 @@ class Task(db.Model):
 
     def to_dict(self) -> Dict[str, Any]:
         return {
-            "task_id": self.task_id,
+            "id": self.id,
             "status": self.status,
-            "type": self.type,
-            "parameters": eval(self.parameters),
-            "result": self.result,
+            "task_type": self.task_type,
+            "parameters": self.parameters,
             "error_message": self.error_message,
+            "user_id": self.user_id
         }
     

@@ -132,18 +132,8 @@ def get_task(task_id):
         
         if task is None:
             return jsonify({"error": "Task not found"}), 404
-        
-        task_dict = {
-            "id": task.id,
-            "name": task.name,
-            "status": task.status,
-            "task_type": task.task_type,
-            "parameters": task.parameters,
-            "created_at": task.created_at,
-            "updated_at": task.updated_at
-        }
 
-        return jsonify(task_dict), 200
+        return jsonify(task.to_dict()), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
     
@@ -152,11 +142,15 @@ def get_all():
     try:
         statement = select(Task)
         tasks_data = get_items(app, statement)
+        # print(tasks_data)
+        # print(json.dumps(tasks_data))
+        # print(tasks_data[0].to_dict())
+        res = [i.to_dict() for i in tasks_data]
         
         if not tasks_data:
             return jsonify({"message": "No tasks found"}), 404
         
-        return jsonify(tasks_data), 200
+        return jsonify(res), 200
     except Exception as e:
         return jsonify({"error": f"Error fetching tasks: {str(e)}"}), 500
 
