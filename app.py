@@ -91,17 +91,34 @@ def index():
 @app.route('/tasks', methods=['POST'])
 def create_task():
     try:
-        user = get_item_by_id(User, 1)
+        # try:
+        #     u = User(name = "admin", mail = "fff@gmail.com", pswrd = "123")
+        # except Exception as e:
+        #     print("Error creating user", e)
+        # print(u)
+        # try:
+        #     add_item(app, u)
+        # except:
+        #     print("SOmething went wrong")
+        # try:
+        #     user = get_item_by_id(app, User, id=1)
+        # except Exception as e:
+        #     print("Error finding user", e)
+
+        user = get_item_by_id(app, User, id=1)
+        # print(user.id)
         data = request.json
-        task_type = data.get('task_type')
+        print(data)
+        type_value = data.get('task_type')
+        print(type_value)
         parameters = data.get('parameters', {})
 
-        if not task_type or not isinstance(parameters, dict):
+        if not type_value or not isinstance(parameters, dict):
             return jsonify({"error": "Invalid input"}), 400
 
         pars=json.dumps(parameters)
-        new_task = Task(user=user, task_type=task_type, parameters=pars, status=TaskStatuses.WAITING_TO_CREATE.name)
-
+        new_task = Task(user_id=user.id, task_type="parse", parameters=pars, status=TaskStatuses.WAITING_TO_CREATE.name)
+        print(f"Task state before insert: {new_task.__dict__}")
         add_item(app, new_task)
 
         return jsonify({"message": "Task created"})
@@ -134,7 +151,7 @@ def get_task(task_id):
 def get_all():
     try:
         statement = select(Task)
-        tasks_data = get_items_as_dicts(app, statement)
+        tasks_data = get_items(app, statement)
         
         if not tasks_data:
             return jsonify({"message": "No tasks found"}), 404
