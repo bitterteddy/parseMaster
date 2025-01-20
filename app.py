@@ -23,15 +23,15 @@ def run_task(task_id):
         if not task:
             raise Exception("Task not found")
         
-        try:
-            parameters = (
-                json.loads(task.parameters)
-                if isinstance(task.parameters, str)
-                else task.parameters
-            )
-        except Exception as e:
-            raise Exception(f"Error parsing parameters: {str(e)}")
-        
+        # try:
+        #     parameters = (
+        #         json.loads(task.parameters)
+        #         if isinstance(task.parameters, str)
+        #         else task.parameters
+        #     )
+        # except Exception as e:
+        #     raise Exception(f"Error parsing parameters: {str(e)}")
+        parameters = task.get_parameters_as_dict()
         if task.task_type == "parse":
             parser = SoupParser()
             urls = parameters.get("urls", [])

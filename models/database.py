@@ -1,4 +1,5 @@
 from typing import Any, List, Dict
+from uu import Error
 from sqlalchemy import MetaData, text, select
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import sessionmaker
@@ -111,24 +112,34 @@ def update_item(app, item, upd_func, par):
             session.close()
 
 def create_custom_table(app, table_name:str, column_params:List[Dict[str, Any]]):
-    pass
-    # with app.app_context():
-    #     columns = [
-    #         db.Column("id", db.Integer, primary_key=True, autoincrement=True),  # ID �������
-    #     ]
+    with app.app_context():
+        columns = [
+            db.Column("id", db.Integer, primary_key=True, autoincrement=True),  # ID �������
+        ]
 
-    #     for element in column_params:
-    #         column_name = element["name"]
-    #         column_type = db.Text if element.get("multiple", False) else db.String(255)
-    #         columns.append(db.Column(column_name, column_type))
+        for element in column_params:
+            column_name = element["name"]
+            column_type = db.Text if element.get("multiple", False) else db.String(255)
+            columns.append(db.Column(column_name, column_type))
         
-    #     table = db.Table(table_name, metadata, *columns, extend_existing=True)
-    #     metadata.create_all(bind=db.engine)
-    # return table
+        table = db.Table(table_name, metadata, *columns, extend_existing=True)
+        metadata.create_all(bind=db.engine)
+    return table
 
-def fill_custom_table(app, table_name:str, results:List[Dict[str, str]]):
-    pass
-    # with app.app_context():
-    #     table = db.Table(table_name, metadata, autoload_with=db.engine)
-
+def fill_custom_table(app, table_name:str, results:List[Dict[str, Any]]):
+    with app.app_context():
+        table = db.Table(table_name, metadata, autoload_with=db.engine)
+        insert_values = [
+            {key: (",".join(value) if isinstance(value, list) else value) for key, value in result.items()}
+            for result in results
+        ]
+        Session = sessionmaker(bind=db.engine)
+        session = Session()
+        try:
+            session.execute(table.insert().values(insert_values))
+            session.commit()
+        except Error as e:
+            print(e)
+        finally:
+            session.close()
       
