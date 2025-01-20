@@ -17,21 +17,21 @@ class Task(db.Model):
     __tablename__ = 'tasks'
     id = db.Column(db.Integer, primary_key=True)
     status = db.Column(db.String(120), nullable=False)
-    task_type = db.Column(db.String(120), nullable=False)
+    task_type = db.Column(db.String(120), nullable=False, default="parse")
     parameters = db.Column(db.Text, nullable=False)
     error_message = db.Column(db.Text, nullable=True)
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"))
     
-    def __init__(self, task_id: int, status:str, task_type: str, parameters:str, user_id:int):
-        self.task_id = task_id
+    def __init__(self, status:str, task_type, parameters:str, user_id:int):
         self.status = status
         self.type = task_type
         self.parameters = parameters
         self.result = None
         self.error_message = None
+        self.user_id = user_id
         self._lock = threading.Lock()
     
-    def start(self, par):
+    def start(self):
         self.status = TaskStatuses.IN_PROGRESS.name
         print(f"Task {self.task_id} - in progress...")
 
@@ -48,18 +48,18 @@ class Task(db.Model):
     def is_paused(self):
         return self.status == TaskStatuses.PAUSED.name
     
-    def pause(self, par):
+    def pause(self):
         with self._lock:
             self.status = TaskStatuses.PAUSED.name
             print(f"Task {self.task_id} - paused!")
 
-    def resume(self, par):
+    def resume(self):
         with self._lock:
             self.status = TaskStatuses.IN_PROGRESS.name
             print(f"Task {self.task_id} - resumed!")
             print(f"Task {self.task_id} - in progress...")
 
-    def stop(self, par):
+    def stop(self):
         with self._lock:
             self.status = TaskStatuses.STOPPED.name
             print(f"Task {self.task_id} - stopped!")
