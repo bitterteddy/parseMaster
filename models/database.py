@@ -44,7 +44,6 @@ def get_item(app, statement):
     return res
 
 def get_item_by_id(app, table, id):
-    print("IDDDD")
     with app.app_context():
         Session = sessionmaker(bind=db.engine)
         session = Session()
@@ -70,7 +69,6 @@ def get_items_as_dicts(app, statement):
     return res
 
 def add_item(app, item):
-    print(item)
     with app.app_context():
         Session = sessionmaker(bind=db.engine)
         session = Session()
