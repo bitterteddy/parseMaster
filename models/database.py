@@ -114,7 +114,7 @@ def update_item(app, item, upd_func, par):
 def create_custom_table(app, table_name:str, column_params:List[Dict[str, Any]]):
     with app.app_context():
         columns = [
-            db.Column("id", db.Integer, primary_key=True, autoincrement=True),  # ID �������
+            db.Column("id", db.Integer, primary_key=True, autoincrement=True),
         ]
 
         for element in column_params:
@@ -126,7 +126,7 @@ def create_custom_table(app, table_name:str, column_params:List[Dict[str, Any]])
         metadata.create_all(bind=db.engine)
     return table
 
-def fill_custom_table(app, table_name:str, results:List[Dict[str, Any]]):
+def fill_custom_table(app, table_name:str, results:Dict[str, Any]):
     with app.app_context():
         table = db.Table(table_name, metadata, autoload_with=db.engine)
         insert_values = [

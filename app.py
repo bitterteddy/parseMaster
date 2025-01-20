@@ -51,12 +51,6 @@ def run_task(task_id):
         # all_results = []
         for url in urls:
             try:
-                if task.status == TaskStatuses.STOPPED.name:
-                    print(f"Task {task.id} stopped.")
-                    break
-                if task.status == TaskStatuses.PAUSED.name:
-                    print(f"Task {task.id} paused. Skipping URL: {url}")
-                    continue
                 result = None
                 if task.task_type == "parse":
                     result = parser.parse(url, parse_parameters)
@@ -69,6 +63,8 @@ def run_task(task_id):
             except Exception as e:
                 print(f"Error parsing URL {url} for task {task.id} ({task.task_type}): {str(e)}")
 
+        setter_lambda = lambda t, s: t.change_status(s)
+        update_item(app, task, setter_lambda, TaskStatuses.COMPLETED.name)
         # if all_results:
         #     table_name = f"parsed_results_{task_id}"
         #     print(table_name)
@@ -123,7 +119,7 @@ def create_task():
             return jsonify({"error": "Invalid input"}), 400
 
         pars=json.dumps(parameters)
-        new_task = Task(user_id=user.id, task_type="parse", parameters=pars, status=TaskStatuses.WAITING_TO_CREATE.name)
+        new_task = Task(user_id=user.id, task_type="parse", parameters=pars, status=TaskStatuses.CREATED.name)
         print(f"Task state before insert: {new_task.__dict__}")
         add_item(app, new_task)
 
@@ -163,7 +159,7 @@ def start_task(task_id):
             if not task:
                 return jsonify({"error": "Task not found"}), 404
             
-            if task.status not in [TaskStatuses.WAITING_TO_CREATE.name, TaskStatuses.PAUSED.name, TaskStatuses.IN_PROGRESS.name, TaskStatuses.ERROR.name]:
+            if task.status not in [TaskStatuses.CREATED.name, TaskStatuses.ERROR.name]:
                 return jsonify({"error": f"Task {task.id} cannot be started."}), 400
             
             setter_lambda = lambda t, s: t.change_status(s)

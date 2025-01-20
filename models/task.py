@@ -7,12 +7,10 @@ from models.database import create_custom_table, fill_custom_table, get_database
 db = get_database()
 
 class TaskStatuses(Enum):
-    WAITING_TO_CREATE = 0
+    CREATED = 0
     IN_PROGRESS = 1
     COMPLETED = 2
-    PAUSED = 3
-    STOPPED = 4
-    ERROR = 5
+    ERROR = 3
     
 class Task(db.Model):
     __tablename__ = 'tasks'
@@ -50,28 +48,6 @@ class Task(db.Model):
         self.status = TaskStatuses.ERROR.name
         self.error_message = error_message
         # print(f"Task {self.id} failed to complete! Error: {error_message}")
-
-    def is_paused(self):
-        return self.status == TaskStatuses.PAUSED.name
-    
-    def pause(self):
-        with self._lock:
-            self.status = TaskStatuses.PAUSED.name
-            print(f"Task {self.id} - paused!")
-
-    def resume(self):
-        with self._lock:
-            self.status = TaskStatuses.IN_PROGRESS.name
-            print(f"Task {self.id} - resumed!")
-            print(f"Task {self.id} - in progress...")
-
-    def stop(self):
-        with self._lock:
-            self.status = TaskStatuses.STOPPED.name
-            print(f"Task {self.id} - stopped!")
-
-    def is_stopped(self):
-        return self.status == TaskStatuses.STOPPED.name
     
     def get_parameters_as_dict(self) -> Dict[str, Any]: 
         return eval(self.parameters)
@@ -88,7 +64,7 @@ class Task(db.Model):
             
     def save_result(self, app, result):
         table_name = f"parsed_results_{self.id}"
-        fill_custom_table(app, table_name, [result])
+        fill_custom_table(app, table_name, result)
 
     def to_dict(self) -> Dict[str, Any]:
         return {
