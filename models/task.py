@@ -30,10 +30,15 @@ class Task(db.Model):
         self.error_message = None
         self.user_id = user_id
         self._lock = threading.Lock()
+        self.setter_lambda = lambda t, s: t.change_status(s)
+        self.fail_lambda = lambda t, m: t.fail(m)
     
-    def start(self):
-        self.status = TaskStatuses.IN_PROGRESS.name
-        print(f"Task {self.id} - in progress...")
+    def change_status(self, status):
+        self.status = status
+    
+    # # def start(self):
+    # #     self.status = TaskStatuses.IN_PROGRESS.name
+    # #     print(f"Task {self.id} - in progress...")
 
     def complete(self, result: Any):
         self.status = TaskStatuses.COMPLETED.name
@@ -43,7 +48,7 @@ class Task(db.Model):
     def fail(self, error_message: str):
         self.status = TaskStatuses.ERROR.name
         self.error_message = error_message
-        print(f"Task {self.id} failed to complete! Error: {error_message}")
+        # print(f"Task {self.id} failed to complete! Error: {error_message}")
 
     def is_paused(self):
         return self.status == TaskStatuses.PAUSED.name

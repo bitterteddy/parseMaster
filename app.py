@@ -74,8 +74,7 @@ def run_task(task_id):
                 fill_custom_table(table_name, all_results)
 
     except Exception as e:
-        f = lambda t, m: t.fail(m)
-        update_item(app, task, f, str(e))
+        update_item(app, task, task.fail_lambda, str(e))
         print(f"Error during task execution: {str(e)}")
 
 
@@ -142,17 +141,31 @@ def get_all():
     try:
         statement = select(Task)
         tasks_data = get_items(app, statement)
-        # print(tasks_data)
-        # print(json.dumps(tasks_data))
-        # print(tasks_data[0].to_dict())
-        res = [i.to_dict() for i in tasks_data]
-        
         if not tasks_data:
             return jsonify({"message": "No tasks found"}), 404
-        
+        res = [i.to_dict() for i in tasks_data]        
         return jsonify(res), 200
     except Exception as e:
         return jsonify({"error": f"Error fetching tasks: {str(e)}"}), 500
+
+@app.route('/tasks/<int:task_id>/start', methods=['POST'])
+def start_task(task_id):
+    try: 
+        with app.app_context():
+            task = get_item_by_id(app, task_id)
+            if not task:
+                return jsonify({"error": "Task not found"}), 404
+            
+            if task.status not in [TaskStatuses.STOPPED.name, TaskStatuses.PAUSED.name]:
+                return jsonify({"error": f"Task {task.id} cannot be started."}), 400
+            
+            update_item(app, task, task.setter_lambda, TaskStatuses.IN_PROGRESS.name)
+            
+        threading.Thread(target=run_task, args=(task_id,)).start()
+        
+        return jsonify({"message": f"Task {task_id} started."})
+    except Exception as e:
+        return jsonify({"error": f"Database error: {str(e)}"}), 500
 
 if __name__ == '__main__':
     print("Starting Flask app...")
