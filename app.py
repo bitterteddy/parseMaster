@@ -1,7 +1,7 @@
 from concurrent.futures import ThreadPoolExecutor
 import threading
 from unittest import result
-from flask import Flask, jsonify, render_template, request
+from flask import Flask, jsonify, render_template, request, send_file
 from sqlalchemy import select
 from models.database import add_item, create_custom_table, fill_custom_table, get_item, get_item_by_id, get_items, get_items_as_dicts, initialize, update_item
 from models.task import Task, TaskStatuses
@@ -177,6 +177,34 @@ def get_task_result(task_id):
     task = get_item_by_id(app, Task, task_id)
     result = task.get_result(app)
     return jsonify(result)
+
+@app.route('/tasks/<int:task_id>/result_in_json', methods=['GET'])
+def get_json(task_id):
+    task = get_item_by_id(app, Task, task_id)
+    print(task)
+    result = task.get_result(app)
+    print(result)
+
+    file_path = "parsing_result.json"
+    with open(file_path, "w") as outfile:
+        json.dump(result, outfile, indent=2)
+
+    return send_file(file_path, as_attachment=True, download_name=f"parsing_task_{task_id}_result.json", mimetype='application/json')
+
+@app.route('/tasks/<int:task_id>/result_in_csv', methods=['GET'])
+def get_csv(task_id):
+    task = get_item_by_id(app, Task, task_id)
+    result = task.get_result(app)
+
+    import csv
+    file_path = f"parsing_task_{task_id}_result.csv"
+    with open(file_path, "w", newline="") as outfile:
+        writer = csv.writer(outfile)
+        writer.writerow(result.keys())
+        writer.writerow(result.values()) 
+
+    return send_file(file_path, as_attachment=True, download_name=f"parsing_task_{task_id}_result.csv", mimetype='text/csv')
+    
 
 if __name__ == '__main__':
     print("Starting Flask app...")

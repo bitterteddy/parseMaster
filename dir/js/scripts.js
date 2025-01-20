@@ -130,6 +130,8 @@ async function loadTasks() {
                             <div class="modal-content">
                                 <div class="modal-header">
                                     <h5 class="modal-title" id="resultModalLabel">Task Result</h5>
+                                    <button class="btn btn-primary" onclick="downloadJSON(${task.id})">Download JSON</button>
+                                    <button class="btn btn-secondary" onclick="downloadCSV(${task.id})">Download CSV</button>
                                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                 </div>
                                 <div class="modal-body">
@@ -198,45 +200,6 @@ function startTask(taskId) {
       });
 }
 
-// function viewTaskResult(taskId) {
-//     const resultContainer = document.getElementById("task-result");
-//     const resultData = taskResults[taskId];
-
-//     resultContainer.innerHTML = "";
-
-//     if (resultData.success) {
-//         const table = document.createElement("table");
-//         table.className = "table table-striped";
-
-//         const thead = document.createElement("thead");
-//         thead.innerHTML = `
-//             <tr>
-//                 <th>Column 1</th>
-//                 <th>Column 2</th>
-//             </tr>
-//         `;
-//         table.appendChild(thead);
-
-//         const tbody = document.createElement("tbody");
-//         resultData.data.forEach((row) => {
-//             const tr = document.createElement("tr");
-//             tr.innerHTML = `
-//                 <td>${row.col1}</td>
-//                 <td>${row.col2}</td>
-//             `;
-//             tbody.appendChild(tr);
-//         });
-//         table.appendChild(tbody);
-
-//         resultContainer.appendChild(table);
-//     } else {
-//         const errorMsg = document.createElement("p");
-//         errorMsg.textContent = `Error: ${resultData.error}`;
-//         errorMsg.style.color = "red";
-//         resultContainer.appendChild(errorMsg);
-//     }
-// }
-
 async function viewTaskResult(taskId) {
     try {
         const response = await fetch(`/tasks/${taskId}/result`);
@@ -245,7 +208,8 @@ async function viewTaskResult(taskId) {
         }
 
         const data = await response.json();
-        const { columns, rows } = data;
+        const rows = data
+        const columns = Object.keys(rows[0] || {}); 
 
         const tableHead = document.getElementById("resultTableHead");
         const tableBody = document.getElementById("resultTableBody");
@@ -256,7 +220,7 @@ async function viewTaskResult(taskId) {
         const headRow = document.createElement("tr");
         columns.forEach(column => {
             const th = document.createElement("th");
-            th.textContent = column;
+            th.textContent = column.replace('_', ' ').toUpperCase();
             headRow.appendChild(th);
         });
         tableHead.appendChild(headRow);
@@ -265,7 +229,7 @@ async function viewTaskResult(taskId) {
             const bodyRow = document.createElement("tr");
             columns.forEach(column => {
                 const td = document.createElement("td");
-                td.textContent = row[column] || ""; 
+                td.textContent = row[column] || "";
                 bodyRow.appendChild(td);
             });
             tableBody.appendChild(bodyRow);
@@ -280,5 +244,50 @@ async function viewTaskResult(taskId) {
     }
 }
 
+async function downloadJSON(taskId) {
+    try {
+        const response = await fetch(`/tasks/${taskId}/result_in_json`);
+        
+        if (!response.ok) {
+            throw new Error('Failed to fetch task result file');
+        }
+
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `parsing_task_${taskId}_result.json`; 
+        a.click(); 
+
+        URL.revokeObjectURL(url);
+    }
+    catch (error) {
+        console.error('Error downloading JSON file:', error);
+    }
+}
+
+async function downloadCSV(taskId) {
+    try {
+        const response = await fetch(`/tasks/${taskId}/result_in_csv`);
+
+        if (!response.ok) {
+            throw new Error('Failed to fetch task result file');
+        }
+
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `parsing_task_${taskId}_result.csv`;
+        a.click(); 
+
+        URL.revokeObjectURL(url);
+    }
+    catch (error) {
+        console.error('Error downloading CSV file:', error);
+    }
+}
 
 loadTasks();
