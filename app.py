@@ -18,7 +18,7 @@ executor = ThreadPoolExecutor(max_workers=5)
 def run_task(task_id):
     try:
         all_results = []
-        task = get_item_by_id(Task, task_id)
+        task = get_item_by_id(app, Task, task_id)
         
         if not task:
             raise Exception("Task not found")
@@ -31,7 +31,10 @@ def run_task(task_id):
         #     )
         # except Exception as e:
         #     raise Exception(f"Error parsing parameters: {str(e)}")
-        parameters = task.get_parameters_as_dict()
+
+        parameters = json.loads(task.parameters)
+        # parameters = task.get_parameters_as_dict()
+        # print(parameters)
         if task.task_type == "parse":
             parser = SoupParser()
             urls = parameters.get("urls", [])
@@ -70,11 +73,12 @@ def run_task(task_id):
             elements = parameters.get("parse_parameters", {}).get("elements", [])
 
             if(elements):
-                create_custom_table(table_name, elements)
-                fill_custom_table(table_name, all_results)
+                create_custom_table(app, table_name, elements)
+                fill_custom_table(app, table_name, all_results)
 
     except Exception as e:
-        update_item(app, task, task.fail_lambda, str(e))
+        fail_lambda = lambda t, m: t.fail(m)
+        update_item(app, task, fail_lambda, str(e))
         print(f"Error during task execution: {str(e)}")
 
 
@@ -152,14 +156,15 @@ def get_all():
 def start_task(task_id):
     try: 
         with app.app_context():
-            task = get_item_by_id(app, task_id)
+            task = get_item_by_id(app, Task, task_id)
             if not task:
                 return jsonify({"error": "Task not found"}), 404
             
-            if task.status not in [TaskStatuses.STOPPED.name, TaskStatuses.PAUSED.name]:
+            if task.status not in [TaskStatuses.WAITING_TO_CREATE.name, TaskStatuses.PAUSED.name, TaskStatuses.IN_PROGRESS.name, TaskStatuses.ERROR.name]:
                 return jsonify({"error": f"Task {task.id} cannot be started."}), 400
             
-            update_item(app, task, task.setter_lambda, TaskStatuses.IN_PROGRESS.name)
+            setter_lambda = lambda t, s: t.change_status(s)
+            update_item(app, task, setter_lambda, TaskStatuses.IN_PROGRESS.name)
             
         threading.Thread(target=run_task, args=(task_id,)).start()
         
