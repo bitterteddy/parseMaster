@@ -33,6 +33,8 @@ def run_task(task_id):
         #     raise Exception(f"Error parsing parameters: {str(e)}")
 
         parameters = json.loads(task.parameters)
+        if not task.create_results_table(app):
+            raise ValueError("Cant buid results' table")
         # parameters = task.get_parameters_as_dict()
         # print(parameters)
         if task.task_type == "parse":
@@ -46,7 +48,7 @@ def run_task(task_id):
         else:
             raise ValueError("Unknown task type")
         
-        all_results = []
+        # all_results = []
         for url in urls:
             try:
                 if task.status == TaskStatuses.STOPPED.name:
@@ -55,26 +57,27 @@ def run_task(task_id):
                 if task.status == TaskStatuses.PAUSED.name:
                     print(f"Task {task.id} paused. Skipping URL: {url}")
                     continue
-
+                result = None
                 if task.task_type == "parse":
                     result = parser.parse(url, parse_parameters)
                 elif task.task_type == "regex_parse":
                     result = parser.parse(url, {"regex_patterns": regex_parameters})
-
-                all_results.extend(result)
+                if result:
+                    task.save_result(app, result)
+                # all_results.extend(result)
 
             except Exception as e:
                 print(f"Error parsing URL {url} for task {task.id} ({task.task_type}): {str(e)}")
 
-        if all_results:
-            table_name = f"parsed_results_{task_id}"
-            print(table_name)
-            # elements = json.loads(parameters).get("elements", [])
-            elements = parameters.get("parse_parameters", {}).get("elements", [])
+        # if all_results:
+        #     table_name = f"parsed_results_{task_id}"
+        #     print(table_name)
+        #     # elements = json.loads(parameters).get("elements", [])
+        #     elements = parameters.get("parse_parameters", {}).get("elements", [])
 
-            if(elements):
-                create_custom_table(app, table_name, elements)
-                fill_custom_table(app, table_name, all_results)
+        #     if(elements):
+        #         create_custom_table(app, table_name, elements)
+        #         fill_custom_table(app, table_name, all_results)
 
     except Exception as e:
         fail_lambda = lambda t, m: t.fail(m)

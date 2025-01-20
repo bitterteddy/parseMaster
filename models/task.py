@@ -1,7 +1,8 @@
 from enum import Enum
+import json
 import threading
 from typing import Any, Dict
-from models.database import get_database
+from models.database import create_custom_table, fill_custom_table, get_database
 
 db = get_database()
 
@@ -74,6 +75,20 @@ class Task(db.Model):
     
     def get_parameters_as_dict(self) -> Dict[str, Any]: 
         return eval(self.parameters)
+    
+    def create_results_table(self, app):
+        table_name = f"parsed_results_{self.id}"
+        pars = json.loads(self.parameters)
+        elements = pars.get("parse_parameters", {}).get("elements", [])
+        if(elements):
+            create_custom_table(app, table_name, elements)
+            return True
+        else:
+            return False    
+            
+    def save_result(self, app, result):
+        table_name = f"parsed_results_{self.id}"
+        fill_custom_table(app, table_name, [result])
 
     def to_dict(self) -> Dict[str, Any]:
         return {
