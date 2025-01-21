@@ -199,9 +199,10 @@ def get_csv(task_id):
     import csv
     file_path = f"parsing_task_{task_id}_result.csv"
     with open(file_path, "w", newline="") as outfile:
-        writer = csv.writer(outfile)
-        writer.writerow(result.keys())
-        writer.writerow(result.values()) 
+        writer = csv.DictWriter(outfile, result[0].keys())
+        writer.writeheader()
+        for r in result:
+            writer.writerow(r)
 
     return send_file(file_path, as_attachment=True, download_name=f"parsing_task_{task_id}_result.csv", mimetype='text/csv')
     

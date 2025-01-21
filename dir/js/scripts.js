@@ -98,14 +98,15 @@ async function loadTasks() {
 
         tasks.forEach(task => {
             const li = document.createElement('li');
+            console.log(task);
             li.innerHTML = `
                 <span>Task ${task.id}: ${task.status}</span>
                 <div class="task-actions">
                     <button class="start" onclick="startTask(${task.id})">Start</button>
                     <button class="stop" onclick="stopTask(${task.id})">Stop</button>
-                    <button class="view" onclick="viewTaskDetails(${task.id})" data-bs-toggle="modal" data-bs-target="#viewModal">View Details</button>
+                    <button class="view" onclick="viewTaskDetails(${task.id})" data-bs-toggle="modal" data-bs-target="#viewModal${task.id}">View Details</button>
                     
-                    <div class="modal fade" id="viewModal" tabindex="-1" aria-labelledby="taskModalLabel" aria-hidden="true">
+                    <div class="modal fade" id="viewModal${task.id}" tabindex="-1" aria-labelledby="taskModalLabel" aria-hidden="true">
                         <div class="modal-dialog">
                              <span>Task ${task.id}: ${task.status}</span>
                             <div class="modal-content">
@@ -114,7 +115,7 @@ async function loadTasks() {
                                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                             </div>
                             <div class="modal-body">
-                                <pre id="task-details"></pre>
+                                <pre id="task-details${task.id}"></pre>
                             </div>
                             <div class="modal-footer">
                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -123,23 +124,24 @@ async function loadTasks() {
                         </div>
                     </div>
 
-                    <button class="view" onclick="viewTaskResult(${task.id})">View Result</button>
+                    
+                    <button class="view" onclick="viewTaskResult(${task.id})" data-bs-toggle="modal" data-bs-target="#resultModal${task.id}">View Result</button>
 
-                    <div class="modal fade" id="resultModal" tabindex="-1" aria-labelledby="resultModalLabel" aria-hidden="true">
+                    <div class="modal fade" id="resultModal${task.id}" tabindex="-1" aria-labelledby="resultModalLabel" aria-hidden="true">
                         <div class="modal-dialog modal-lg">
                             <div class="modal-content">
                                 <div class="modal-header">
-                                    <h5 class="modal-title" id="resultModalLabel">Task Result</h5>
+                                    <h5 class="modal-title" id="resultModalLabel">Task Result ${task.id}</h5>
                                     <button class="btn btn-primary" onclick="downloadJSON(${task.id})">Download JSON</button>
                                     <button class="btn btn-secondary" onclick="downloadCSV(${task.id})">Download CSV</button>
                                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                 </div>
                                 <div class="modal-body">
                                     <table class="table">
-                                        <thead id="resultTableHead">
+                                        <thead id="resultTableHead${task.id}">
                                             <!-- Заголовки таблицы будут добавлены сюда -->
                                         </thead>
-                                        <tbody id="resultTableBody">
+                                        <tbody id="resultTableBody${task.id}">
                                             <!-- Данные таблицы будут добавлены сюда -->
                                         </tbody>
                                     </table>
@@ -162,20 +164,25 @@ async function loadTasks() {
 window.onload = loadTasks;
 
 function viewTaskDetails(taskId) {
-    fetch(`http://localhost:5001/task/${taskId}`)
+    console.log(taskId);
+
+    fetch(`/task/${taskId}`)
       .then(response => {
+        console.log(response);
+
         if (!response.ok) {
           throw new Error('Task not found');
         }
         return response.json();
       })
       .then(task => {
-        const taskDetails = document.getElementById('task-details');
+        console.log(task);
+        const taskDetails = document.getElementById("task-details"+taskId);
   
         taskDetails.textContent = JSON.stringify(task, null, 2);
       })
       .catch(error => {
-        const taskDetails = document.getElementById('task-details');
+        const taskDetails = document.getElementById("task-details"+taskId);
         taskDetails.textContent = `Error: ${error.message}`;
       });
 }
@@ -210,9 +217,9 @@ async function viewTaskResult(taskId) {
         const data = await response.json();
         const rows = data
         const columns = Object.keys(rows[0] || {}); 
-
-        const tableHead = document.getElementById("resultTableHead");
-        const tableBody = document.getElementById("resultTableBody");
+        
+        const tableHead = document.getElementById("resultTableHead"+taskId);
+        const tableBody = document.getElementById("resultTableBody"+taskId);
 
         tableHead.innerHTML = "";
         tableBody.innerHTML = "";
@@ -235,7 +242,7 @@ async function viewTaskResult(taskId) {
             tableBody.appendChild(bodyRow);
         });
 
-        const modal = new bootstrap.Modal(document.getElementById("resultModal"));
+        const modal = new bootstrap.Modal(document.getElementById(`resultModal${taskId}`));
         modal.show();
 
     } catch (error) {
